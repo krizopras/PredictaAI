@@ -1,0 +1,37 @@
+name: Build PredictaAI APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y python3-pip python3-setuptools zip unzip git libffi-dev libssl-dev liblzma-dev zlib1g-dev
+          pip install "Cython<3" "buildozer==1.5.0" "python-for-android==2024.1.21"
+
+      - name: Build APK
+        run: |
+          cd $GITHUB_WORKSPACE
+          yes | buildozer android debug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PredictaAI-APK
+          path: bin/*.apk
